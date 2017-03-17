@@ -15,21 +15,18 @@ const char *output_file_name = "out.txt";
 /* Функція обчислення факторіалу */
 double factorial(int value) {
 /* Факторіал від’ємного числа не визначений */
-	if (value < 0) {
+	if (value < 0)
 		return NAN;
-	}
 /* 0! = 1 за визначенням */
-	else if (value == 0) {
+
+	if (value == 0)
 		return 1.;
-	}
+
 /* обчислення факторіалу N як добутку всіх натуральних чисел від 1 до N */
-	else {
-		double fact = 1.;
-		for (int i = 2; i <= value; i++) {
-			fact *= i;
-		}
-		return fact;
-	}
+	double fact = 1.;
+	for (int i = 2; i <= value; i++)
+		fact *= i;
+	return fact;
 }
 
 /* Функція обчислення члену ряду за його номером в точці value
@@ -139,9 +136,8 @@ int main(int argc, char *argv[]) {
 					 MPI_STATUS_IGNORE);
 		}
 /* Завершення ітерації, якщо досягнута необхідна точність */
-		if (need_break) {
+		if (need_break)
 			break;
-		}
 	}
 /* Вивід результату в задачі 0 */
 	if (rank == 0) {
