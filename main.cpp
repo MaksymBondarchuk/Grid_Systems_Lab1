@@ -1,16 +1,13 @@
 #include <mpi.h>
 #include <math.h>
 
-double EPSILON = 1E-100;
+double EPSILON = 1E-11;
 int VALUE_TAG = 1;
 int TERM_NUMBER_TAG = 2;
 int TERM_TAG = 3;
 int BREAK_TAG = 4;
 const char *input_file_name = "in.txt";
 const char *output_file_name = "out.txt";
-
-// Ім’я файла вхідних даних
-// Ім’я файла результату
 
 /* Функція обчислення факторіалу */
 double factorial(int value) {
@@ -45,6 +42,8 @@ int main(int argc, char *argv[]) {
 /* Отримання загальної кількості задач */
 	int np;
 	MPI_Comm_size(MPI_COMM_WORLD, &np);
+	printf("Tasks number - %d\n", np);
+
 /* Значення х для обчислення exp(x) */
 	double exponent = 0;
 /* Введення х в задачі 0 з файла */
@@ -61,16 +60,14 @@ int main(int argc, char *argv[]) {
 		fclose(input_file);
 	}
 /* Розсилка х з задачі 0 всім іншим задачам */
-	if (rank == 0) {
+	if (rank == 0)
 /* Послідовна передача х кожній задачі 1..np */
-		for (int i = 1; i < np; i++) {
+		for (int i = 1; i < np; i++)
 			MPI_Send(&exponent, 1, MPI_DOUBLE, i, VALUE_TAG, MPI_COMM_WORLD);
-		}
-	} else {
+	else
 /* Прийом х від задачі 0 */
 		MPI_Recv(&exponent, 1, MPI_DOUBLE, 0, VALUE_TAG, MPI_COMM_WORLD,
 				 MPI_STATUS_IGNORE);
-	}
 /* Номер останнього обчисленого члену ряду */
 	int last_term_number = 0;
 /* Сума членів ряду */
@@ -90,12 +87,12 @@ int main(int argc, char *argv[]) {
 				current_term_number++;
 			}
 			last_term_number = current_term_number;
-		} else {
+		} else
 			MPI_Recv(&term_number, 1, MPI_INT, 0, TERM_NUMBER_TAG,
 					 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		}
 /* Обчислення поточного члену ряду */
 		double term = calc_series_term(term_number, exponent);
+		printf("Tasks #%d calculated term #%d\n", rank, term_number);
 /* Прапорець "ітерація завершена, так як досягнуто необхідну точність" */
 		int need_break = false;
 /* Обчислення суми членів ряду */
@@ -109,9 +106,8 @@ int main(int argc, char *argv[]) {
 * член менше константи EPSILON, то і всі наступні члени також
 * менше цієї константи. Після додавання такого члену необхідна
 * точність досягнута і можна завершувати ітерацію */
-			if (current_term < EPSILON) {
+			if (current_term < EPSILON)
 				need_break = true;
-			}
 			for (int i = 1; i < np; i++) {
 /* Прийом члену від i-тої задачі, додавання його до загальної суми */
 				MPI_Recv(&current_term, 1, MPI_DOUBLE, i, TERM_TAG,
@@ -125,9 +121,8 @@ int main(int argc, char *argv[]) {
 			}
 /* Передача сигналу про необхідність завершення ітерації з задачі 0 всім
 * іншим задачам */
-			for (int i = 1; i < np; i++) {
+			for (int i = 1; i < np; i++)
 				MPI_Send(&need_break, 1, MPI_INT, i, BREAK_TAG, MPI_COMM_WORLD);
-			}
 		} else {
 /* Передача обчисленого члену ряду в задачу 0 */
 			MPI_Send(&term, 1, MPI_DOUBLE, 0, TERM_TAG, MPI_COMM_WORLD);

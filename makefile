@@ -7,7 +7,7 @@ main: main.cpp
 	${MPICC} -o ${EXECS} ${EXECS}.cpp -lm
 
 run:
-	./main
+	./${EXECS}
 
 clean:
 	rm ${EXECS}
